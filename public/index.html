@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRODAS Bot - Mensajes</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="notification-container"></div>
+    <div class="dashboard-container">
+        <header style="background-image: url('header-bg.jpg');">
+            <h1>BRODAS Bot - Panel de control</h1>
+        </header>
+        
+        <div class="server-section">
+            <h2>Servidor y canal</h2>
+            <div class="form-group">
+                <label for="server-select">Servidor:</label>
+                <select id="server-select" class="custom-select">
+                    <option value="">Cargando servidores...</option>
+                </select>
+            </div>
+            
+            <div id="server-stats" class="server-stats hidden">
+                <div class="stat-item">
+                    <span class="stat-label">Miembros:</span>
+                    <span id="member-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Canales:</span>
+                    <span id="channel-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Roles:</span>
+                    <span id="role-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Emojis:</span>
+                    <span id="emoji-count" class="stat-value">0</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="channel-select">Canal de texto:</label>
+                <select id="channel-select" class="custom-select" disabled>
+                    <option value="">Selecciona un servidor primero</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="message-section">
+            <h2>Mensaje</h2>
+            <div class="format-tools">
+                <b style="padding-top: 7px">Formato:</b>
+                <button onclick="insertText('**', '**')" title="Negrita">𝗕</button>
+                <button onclick="insertText('*', '*')" title="Cursiva">𝐼</button>
+                <button onclick="insertText('__', '__')" title="Subrayado">S̲</button>
+                <button onclick="insertText('~~', '~~')" title="Tachado"> ̴T̴</button>
+                <button onclick="insertText('* ', '')" title="Viñetas">•</button>
+                <button onclick="insertText('```', '```')" title="Bloque de código"><></button>
+                <button onclick="insertText('> ', '')" title="Cita">❝ ❞</button>
+                <button onclick="insertText('[', '](enlace)')" title="Enlace">🔗</button>
+                <button onclick="insertText('-# ', '')" title="Tamaño-">ᴬ</button>
+                <button onclick="insertText('### ', '')" title="Tamaño+"><font size="1">A</font></button>
+                <button onclick="insertText('## ', '')" title="Tamaño++"><font size="2">A</font></button>
+                <button onclick="insertText('# ', '')" title="Tamaño+++"><font size="3">A</font></button> 
+            </div>
+            <div class="format-tools">
+                <b style="padding-top: 5px">Menciones:</b>
+                <button id="show-members-btn" class="mention-btn">Miembros</button>
+                <button id="show-roles-btn" class="mention-btn">Roles</button>
+                <button id="show-channels-btn" class="mention-btn">Texto</button>
+                <button id="show-voice-channels-btn" class="mention-btn">Voz</button>
+                <button id="show-emojis-btn" class="mention-btn">Emotes</button>                
+            </div>
+            
+            <textarea id="message-content" class="message-input" placeholder="Escribe tu mensaje aquí..."></textarea>
+            
+            <button id="send-button" class="send-button">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Popup de Miembros -->
+    <div id="members-popup" class="mention-popup hidden">
+        <div class="popup-header">
+            <h3>Miembros</h3>
+            <button class="close-btn" onclick="closePopup('members-popup')">&times;</button>
+        </div>
+        <div class="search-container">
+            <input type="text" id="member-search" class="search-input" placeholder="Buscar miembros...">
+        </div>
+        <div id="members-container" class="mention-container">
+            <!-- Los miembros se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Popup de Roles -->
+    <div id="roles-popup" class="mention-popup hidden">
+        <div class="popup-header">
+            <h3>Roles</h3>
+            <button class="close-btn" onclick="closePopup('roles-popup')">&times;</button>
+        </div>
+        <div id="roles-container" class="mention-container">
+            <!-- Los roles se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Popup de Emojis -->
+    <div id="emojis-popup" class="mention-popup hidden">
+        <div class="popup-header">
+            <h3>Emotes</h3>
+            <button class="close-btn" onclick="closePopup('emojis-popup')">&times;</button>
+        </div>
+        <div id="emojis-container" class="emoji-container">
+            <!-- Los emojis se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Popup de Canales de Texto -->
+    <div id="channels-popup" class="mention-popup hidden">
+        <div class="popup-header">
+            <h3>Canales de texto</h3>
+            <button class="close-btn" onclick="closePopup('channels-popup')">&times;</button>
+        </div>
+        <div id="channels-container" class="mention-container">
+            <!-- Los canales se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Popup de Canales de Voz -->
+<div id="voice-channels-popup" class="mention-popup hidden">
+    <div class="popup-header">
+        <h3>Canales de voz</h3>
+        <button class="close-btn" onclick="closePopup('voice-channels-popup')">&times;</button>
+    </div>
+    <div id="voice-channels-container" class="mention-container">
+        <!-- Los canales de voz se cargarán aquí dinámicamente -->
+    </div>
+</div>
+
+    <!-- Overlay para cerrar al hacer clic fuera -->
+    <div id="popup-overlay" class="overlay hidden"></div>
+
+    <script>
+        let currentGuildId = null;
+        let textHistory = [""];
+        let historyIndex = 0;
+        const MAX_HISTORY = 50;
+        let allMembers = [];
+        let allRoles = [];
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadGuilds();
+            setupEventListeners();
+            
+            const textarea = document.getElementById('message-content');
+            textarea.addEventListener('input', () => {
+                saveTextState();
+            });
+            saveTextState();
+            
+            // Configurar búsqueda de miembros
+            document.getElementById('member-search').addEventListener('input', function() {
+                filterMembers(this.value);
+            });
+        });
+        
+        function saveTextState() {
+            const text = document.getElementById('message-content').value;
+            if (text === textHistory[historyIndex]) return;
+            
+            if (historyIndex < textHistory.length - 1) {
+                textHistory = textHistory.slice(0, historyIndex + 1);
+            }
+            
+            textHistory.push(text);
+            historyIndex = textHistory.length - 1;
+            
+            if (textHistory.length > MAX_HISTORY) {
+                textHistory.shift();
+                historyIndex = textHistory.length - 1;
+            }
+        }
+        
+        function undoText() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                document.getElementById('message-content').value = textHistory[historyIndex];
+            }
+        }
+        
+        function redoText() {
+            if (historyIndex < textHistory.length - 1) {
+                historyIndex++;
+                document.getElementById('message-content').value = textHistory[historyIndex];
+            }
+        }
+        
+        function showNotification(message, isSuccess = true) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+        
+        async function loadGuilds() {
+            try {
+                const response = await fetch('/guilds');
+                const guilds = await response.json();
+                
+                const serverSelect = document.getElementById('server-select');
+                serverSelect.innerHTML = '<option value="">Selecciona un servidor</option>';
+                
+                guilds.forEach(guild => {
+                    const option = document.createElement('option');
+                    option.value = guild.id;
+                    option.textContent = guild.name;
+                    serverSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error cargando servidores:', error);
+                showNotification('Error cargando servidores', false);
+            }
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('server-select').addEventListener('change', async function() {
+                currentGuildId = this.value;
+                if (!currentGuildId) return;
+                
+                await loadServerStats(currentGuildId);
+                await loadChannels(currentGuildId);
+            });
+            
+            // Eventos para botones
+            document.getElementById('show-members-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!currentGuildId) {
+                    showNotification('Por favor selecciona un servidor primero', false);
+                    return;
+                }
+                await loadMembers(currentGuildId);
+                openPopup('members-popup');
+            });
+            
+            document.getElementById('show-roles-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!currentGuildId) {
+                    showNotification('Por favor selecciona un servidor primero', false);
+                    return;
+                }
+                await loadRoles(currentGuildId);
+                openPopup('roles-popup');
+            });
+            
+            document.getElementById('show-emojis-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!currentGuildId) {
+                    showNotification('Por favor selecciona un servidor primero', false);
+                    return;
+                }
+                await loadEmojis(currentGuildId);
+                openPopup('emojis-popup');
+            });
+            
+            document.getElementById('send-button').addEventListener('click', sendMessage);
+            
+            // Evento para cerrar popups al hacer clic en el overlay
+            document.getElementById('popup-overlay').addEventListener('click', function(e) {
+                // Solo cerrar si se hace clic directamente en el overlay (no en un popup)
+                if (e.target === this) {
+                    closeAllPopups();
+                }
+            });
+
+            document.getElementById('show-channels-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!currentGuildId) {
+        showNotification('Por favor selecciona un servidor primero', false);
+        return;
+    }
+    await loadChannelsForMention(currentGuildId);
+    openPopup('channels-popup');
+});
+
+document.getElementById('show-voice-channels-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!currentGuildId) {
+        showNotification('Por favor selecciona un servidor primero', false);
+        return;
+    }
+    await loadVoiceChannels(currentGuildId);
+    openPopup('voice-channels-popup');
+});
+
+async function loadVoiceChannels(guildId) {
+    if (!guildId) return;
+    
+    try {
+        const response = await fetch(`/guilds/${guildId}/voice-channels`);
+        const voiceChannels = await response.json();
+        
+        const voiceChannelsContainer = document.getElementById('voice-channels-container');
+        voiceChannelsContainer.innerHTML = '';
+        
+        if (voiceChannels.length === 0) {
+            voiceChannelsContainer.innerHTML = '<p class="no-results">No hay canales de voz en este servidor</p>';
+            return;
+        }
+        
+        voiceChannels.forEach(channel => {
+            const channelElement = document.createElement('div');
+            channelElement.className = 'mention-item';
+            channelElement.onclick = () => insertVoiceChannelMention(channel);
+            
+            // Icono de canal de voz
+            const icon = document.createElement('span');
+            icon.textContent = '🔊'; // Icono de altavoz
+            icon.className = 'channel-icon';
+            
+            // Nombre
+            const name = document.createElement('span');
+            name.textContent = channel.name;
+            name.className = 'mention-name';
+            
+            channelElement.appendChild(icon);
+            channelElement.appendChild(name);
+            voiceChannelsContainer.appendChild(channelElement);
+        });
+    } catch (error) {
+        console.error('Error cargando canales de voz:', error);
+        showNotification('Error cargando canales de voz', false);
+    }
+}
+
+function insertVoiceChannelMention(channel) {
+    // La mención de canal de voz usa el mismo formato que los canales de texto
+    insertMention(`<#${channel.id}>`);
+}
+
+async function loadChannelsForMention(guildId) {
+    if (!guildId) return;
+    
+    try {
+        const response = await fetch(`/guilds/${guildId}/channels`);
+        const channels = await response.json();
+        
+        const channelsContainer = document.getElementById('channels-container');
+        channelsContainer.innerHTML = '';
+        
+        if (channels.length === 0) {
+            channelsContainer.innerHTML = '<p class="no-results">No hay canales de texto en este servidor</p>';
+            return;
+        }
+        
+        channels.forEach(channel => {
+            const channelElement = document.createElement('div');
+            channelElement.className = 'mention-item';
+            channelElement.onclick = () => insertChannelMention(channel);
+            
+            // Icono de canal
+            const icon = document.createElement('span');
+            icon.textContent = '#';
+            icon.className = 'channel-icon';
+            
+            // Nombre
+            const name = document.createElement('span');
+            name.textContent = channel.name;
+            name.className = 'mention-name';
+            
+            channelElement.appendChild(icon);
+            channelElement.appendChild(name);
+            channelsContainer.appendChild(channelElement);
+        });
+    } catch (error) {
+        console.error('Error cargando canales:', error);
+        showNotification('Error cargando canales', false);
+    }
+}
+
+function insertChannelMention(channel) {
+    insertMention(`<#${channel.id}>`);
+}
+        }
+        
+        function openPopup(popupId) {
+            // Mostrar el overlay
+            document.getElementById('popup-overlay').classList.remove('hidden');
+            
+            // Mostrar el popup solicitado
+            document.getElementById(popupId).classList.remove('hidden');
+        }
+        
+        function closePopup(popupId) {
+            document.getElementById(popupId).classList.add('hidden');
+            document.getElementById('popup-overlay').classList.add('hidden');
+        }
+        
+        function closeAllPopups() {
+            document.getElementById('members-popup').classList.add('hidden');
+            document.getElementById('roles-popup').classList.add('hidden');
+            document.getElementById('emojis-popup').classList.add('hidden');
+            document.getElementById('channels-popup').classList.add('hidden');
+            document.getElementById('voice-channels-popup').classList.add('hidden');
+            document.getElementById('popup-overlay').classList.add('hidden');
+        }
+        
+        async function loadServerStats(guildId) {
+            try {
+                const response = await fetch(`/guilds/${guildId}`);
+                const guild = await response.json();
+                
+                document.getElementById('member-count').textContent = guild.memberCount;
+                document.getElementById('channel-count').textContent = guild.channelCount;
+                document.getElementById('role-count').textContent = guild.roleCount;
+                document.getElementById('emoji-count').textContent = guild.emojiCount;
+                
+                document.getElementById('server-stats').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+        
+        async function loadChannels(guildId) {
+            try {
+                const response = await fetch(`/guilds/${guildId}/channels`);
+                const channels = await response.json();
+                
+                const channelSelect = document.getElementById('channel-select');
+                channelSelect.innerHTML = '<option value="">Selecciona un canal</option>';
+                channelSelect.disabled = false;
+                
+                channels.forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = channel.id;
+                    option.textContent = `#${channel.name}`;
+                    channelSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error cargando canales:', error);
+                showNotification('Error cargando canales', false);
+            }
+        }
+        
+        async function loadMembers(guildId) {
+            if (!guildId) return;
+            
+            try {
+                const response = await fetch(`/guilds/${guildId}/members`);
+                allMembers = await response.json();
+                filterMembers('');
+            } catch (error) {
+                console.error('Error cargando miembros:', error);
+                showNotification('Error cargando miembros', false);
+            }
+        }
+        
+        function filterMembers(searchTerm) {
+            const membersContainer = document.getElementById('members-container');
+            membersContainer.innerHTML = '';
+            
+            const filteredMembers = allMembers.filter(member => {
+                const username = `${member.username}#${member.discriminator}`.toLowerCase();
+                return username.includes(searchTerm.toLowerCase());
+            });
+            
+            if (filteredMembers.length === 0) {
+                membersContainer.innerHTML = '<p class="no-results">No se encontraron miembros</p>';
+                return;
+            }
+            
+            filteredMembers.forEach(member => {
+                const memberElement = document.createElement('div');
+                memberElement.className = 'mention-item';
+                memberElement.onclick = () => insertMemberMention(member);
+                
+                // Avatar
+                const avatar = document.createElement('img');
+                avatar.src = member.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                avatar.alt = member.username;
+                avatar.className = 'mention-avatar';
+                
+                // Nombre
+                const name = document.createElement('span');
+                name.textContent = `${member.username}#${member.discriminator}`;
+                name.className = 'mention-name';
+                
+                memberElement.appendChild(avatar);
+                memberElement.appendChild(name);
+                membersContainer.appendChild(memberElement);
+            });
+        }
+        
+        async function loadRoles(guildId) {
+            if (!guildId) return;
+            
+            try {
+                const response = await fetch(`/guilds/${guildId}/roles`);
+                allRoles = await response.json();
+                
+                const rolesContainer = document.getElementById('roles-container');
+                rolesContainer.innerHTML = '';
+                
+                if (allRoles.length === 0) {
+                    rolesContainer.innerHTML = '<p class="no-results">No hay roles en este servidor</p>';
+                    return;
+                }
+                
+                allRoles.forEach(role => {
+                    const roleElement = document.createElement('div');
+                    roleElement.className = 'mention-item';
+                    roleElement.onclick = () => insertRoleMention(role);
+                    
+                    // Color del rol
+                    const color = document.createElement('div');
+                    color.className = 'role-color';
+                    color.style.backgroundColor = role.color || '#99aab5';
+                    
+                    // Nombre
+                    const name = document.createElement('span');
+                    name.textContent = role.name;
+                    name.className = 'mention-name';
+                    
+                    roleElement.appendChild(color);
+                    roleElement.appendChild(name);
+                    rolesContainer.appendChild(roleElement);
+                });
+            } catch (error) {
+                console.error('Error cargando roles:', error);
+                showNotification('Error cargando roles', false);
+            }
+        }
+        
+        async function loadEmojis(guildId) {
+            if (!guildId) return;
+            
+            try {
+                const response = await fetch(`/guilds/${guildId}/emojis`);
+                const emojis = await response.json();
+                
+                const emojiContainer = document.getElementById('emojis-container');
+                emojiContainer.innerHTML = '';
+                
+                if (emojis.length === 0) {
+                    emojiContainer.innerHTML = '<p class="no-results">No hay emojis en este servidor</p>';
+                    return;
+                }
+                
+                emojis.forEach(emoji => {
+                    const emojiElement = document.createElement('div');
+                    emojiElement.className = 'emoji-item';
+                    emojiElement.onclick = () => insertEmoji(emoji);
+                    
+                    const img = document.createElement('img');
+                    img.src = emoji.url;
+                    img.alt = emoji.name;
+                    img.title = emoji.name;
+                    img.className = 'emoji-img';
+                    
+                    emojiElement.appendChild(img);
+                    emojiContainer.appendChild(emojiElement);
+                });
+            } catch (error) {
+                console.error('Error cargando emojis:', error);
+                showNotification('Error cargando emojis', false);
+            }
+        }
+        
+        function insertMemberMention(member) {
+            insertMention(`<@${member.id}>`);
+        }
+        
+        function insertRoleMention(role) {
+            insertMention(`<@&${role.id}>`);
+        }
+        
+        function insertEmoji(emoji) {
+            insertMention(`<:${emoji.name}:${emoji.id}>`);
+        }
+        
+        function insertMention(mentionText) {
+            const textarea = document.getElementById('message-content');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+            
+            textarea.value = textBefore + mentionText + textAfter;
+            textarea.focus();
+            textarea.setSelectionRange(cursorPos + mentionText.length, cursorPos + mentionText.length);
+            
+            saveTextState();
+        }
+        
+        function insertText(before, after) {
+            const textarea = document.getElementById('message-content');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            
+            textarea.value = text.substring(0, start) + before + selectedText + after + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+            
+            saveTextState();
+        }
+        
+        async function sendMessage() {
+            const serverSelect = document.getElementById('server-select');
+            const channelSelect = document.getElementById('channel-select');
+            const messageContent = document.getElementById('message-content').value;
+            
+            if (!serverSelect.value || !channelSelect.value) {
+                showNotification('Por favor selecciona un servidor y un canal', false);
+                return;
+            }
+            
+            if (!messageContent.trim()) {
+                showNotification('Por favor escribe un mensaje', false);
+                return;
+            }
+            
+            try {
+                const response = await fetch('/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        guildId: serverSelect.value,
+                        channelId: channelSelect.value,
+                        content: messageContent
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Mensaje enviado con éxito!');
+                } else {
+                    const error = await response.text();
+                    showNotification(`Error: ${error}`, false);
+                }
+            } catch (error) {
+                console.error('Error enviando mensaje:', error);
+                showNotification('Error al enviar el mensaje', false);
+            }
+        }
+    </script>
+</body>
+</html>
